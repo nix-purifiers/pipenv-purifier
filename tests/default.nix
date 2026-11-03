@@ -136,14 +136,20 @@ let
       )
     );
 
-  # Starts a package index on 127.0.0.1:8080 that serves a directory and
+  # Starts a package index on 127.0.0.1:<port> that serves a directory and
   # takes uploads into it without authentication, and waits until it
-  # answers.
-  startIndex = directory: ''
-    ${pypiserver.interpreter} -m pypiserver run --port 8080 --host 127.0.0.1 \
+  # answers. Each check that starts one has a port of its own: darwin
+  # builds share the host's network, so two checks building at once on one
+  # port would share one index.
+  startIndex = port: directory: ''
+    ${pypiserver.interpreter} -m pypiserver run --port ${toString port} --host 127.0.0.1 \
       --authenticate . --passwords . --disable-fallback ${directory} &
+    # Darwin builds have no PID namespace, so a server left running would
+    # keep the build's log open after the builder exits.
+    server=$!
+    trap 'kill $server' EXIT
     for _ in $(seq 100); do
-      ${pkgs.python3.interpreter} -c 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/simple/")' 2>/dev/null && break
+      ${pkgs.python3.interpreter} -c 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:${toString port}/simple/")' 2>/dev/null && break
       sleep 0.1
     done
   '';
@@ -474,7 +480,7 @@ in
         export PIPENV_CACHE_DIR=$TMPDIR/pipenv-cache PIP_CACHE_DIR=$TMPDIR/pip-cache
         mkdir packages
         cp ${simpleFiles}/* packages/
-        ${startIndex "packages"}
+        ${startIndex 8080 "packages"}
         cp -r ${./fixtures/simple} project
         chmod -R u+w project
         cd project
@@ -548,11 +554,11 @@ in
         cp ${simpleFiles}/* packages/
         mv packages/six-1.17.0* "$TMPDIR/"
         cp ${six16} packages/six-1.16.0-py2.py3-none-any.whl
-        ${startIndex "packages"}
+        ${startIndex 8081 "packages"}
         cp -r ${./fixtures/simple} project
         chmod -R u+w project
         cd project
-        sed -i 's|https://pypi.org/simple|http://127.0.0.1:8080/simple|; s|^six = "==1.17.0"$|six = "*"|' Pipfile
+        sed -i 's|https://pypi.org/simple|http://127.0.0.1:8081/simple|; s|^six = "==1.17.0"$|six = "*"|' Pipfile
         pipenv lock
         rm -rf .venv
         pipenv-purifier lock
@@ -645,9 +651,9 @@ in
   publish = runCommand "pipenv-purifier-test-publish" { nativeBuildInputs = [ cli ]; } ''
     export HOME=$TMPDIR UV_CACHE_DIR=$TMPDIR/uv-cache
     mkdir packages
-    ${startIndex "packages"}
+    ${startIndex 8082 "packages"}
     pipenv-purifier publish --release ${simple.release} -- \
-      --publish-url http://127.0.0.1:8080/ --username user --password password
+      --publish-url http://127.0.0.1:8082/ --username user --password password
     test -f packages/simple-0.1.0.tar.gz
     test -f packages/simple-0.1.0-py3-none-any.whl
     touch $out

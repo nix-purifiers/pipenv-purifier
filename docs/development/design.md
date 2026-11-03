@@ -88,7 +88,8 @@ derived shapes from the result's `views`.
 The shared [purifier](https://github.com/nix-purifiers/purifier) library's
 `wheels` decides from a wheel's file name whether it installs with the
 build's Python on the build's system (PEP 425 tags, manylinux 1, 2010, 2014
-and `2_N` against the glibc of the package set, `abi3`). For each package,
+and `2_N` against the glibc of the package set, `macosx` up to the package
+set's oldest macOS, `abi3`). For each package,
 `nix/lib/build-pipenv-project.nix` takes its wheels that install, or else
 its sdist and the build of it. A build adds the files of its set of build
 requirements, chosen the same way, and the builds those need in turn. The

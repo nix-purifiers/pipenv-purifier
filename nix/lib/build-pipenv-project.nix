@@ -166,11 +166,25 @@ let
 
   platform = stdenvNoCC.hostPlatform;
   target = "Python ${interpreter.pythonVersion} on ${platform.system}";
-  installs = purifier.wheels {
-    inherit (interpreter) pythonVersion;
-    arch = platform.parsed.cpu.name;
-    glibcVersion = glibc.version;
-  };
+  installs = purifier.wheels (
+    {
+      inherit (interpreter) pythonVersion;
+    }
+    // (
+      if platform.isDarwin then
+        {
+          # macOS wheel tags name the CPU arm64, and a wheel installs when
+          # the oldest macOS it runs on is at most nixpkgs' darwinMinVersion.
+          arch = "arm64";
+          macosVersion = platform.darwinMinVersion;
+        }
+      else
+        {
+          arch = platform.parsed.cpu.name;
+          glibcVersion = glibc.version;
+        }
+    )
+  );
 
   # What installing a locked package of an index needs on this system: its
   # wheels that install, or else its sdist and a build of it. A package with

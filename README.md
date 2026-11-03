@@ -298,10 +298,10 @@ It reads every package category, `default`, `develop` and custom ones.
 - A URL in Pipfile.lock with credentials in it.
 - A hash of an algorithm other than sha256.
 
-The builds run on Linux, x86_64 and aarch64. pip skips a package whose
-markers exclude the build's system. A package that the markers include,
-with neither a wheel for the build's system nor an sdist, fails the build
-with pip's error about the missing file.
+The builds run on Linux, x86_64 and aarch64, and on aarch64-darwin. pip
+skips a package whose markers exclude the build's system. A package that
+the markers include, with neither a wheel for the build's system nor an
+sdist, fails the build with pip's error about the missing file.
 
 ## Examples
 
