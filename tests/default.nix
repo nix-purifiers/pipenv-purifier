@@ -110,10 +110,12 @@ let
   simpleLock = builtins.fromJSON (builtins.readFile ./fixtures/simple/pipenv-purifier.lock.json);
   simplePipfileLock = builtins.fromJSON (builtins.readFile ./fixtures/simple/Pipfile.lock);
   simpleFiles = pkgs.linkFarm "pipenv-purifier-test-simple-files" (
-    map (entry: {
-      name = entry.path;
-      path = purifier.fetchEntry { inherit pkgs; } entry;
-    }) (lib.attrValues (import ../nix/lib/lock.nix { src = ./fixtures/simple; }).views.files)
+    map
+      (entry: {
+        name = entry.path;
+        path = purifier.fetchEntry { inherit pkgs; } entry;
+      })
+      (lib.attrValues (import ../lib-overlays/default/lock.nix { src = ./fixtures/simple; }).views.files)
   );
   # An older six, which the local index of conformance-update serves.
   six16 = pkgs.fetchurl {
@@ -247,7 +249,7 @@ let
           test ! -e .venv/bin/simple
         ''}
         if nix-instantiate --eval --strict --store dummy:// \
-          --expr "let lock = import ${../nix/lib}/lock.nix { src = $PWD; }; in if lock.problems == [ ] then builtins.deepSeq lock.entries true else throw (builtins.concatStringsSep \"\n\" lock.problems)" \
+          --expr "let lock = import ${../lib-overlays/default}/lock.nix { src = $PWD; }; in if lock.problems == [ ] then builtins.deepSeq lock.entries true else throw (builtins.concatStringsSep \"\n\" lock.problems)" \
           2> "$TMPDIR/nix-error"; then
           echo "the Nix library accepted the damaged project" >&2
           exit 1
@@ -569,7 +571,7 @@ in
         pipenv verify
         pipenv-purifier prefetch --inputs ${simple.prefetch} --categories tools
         nix-instantiate --eval --strict --store dummy:// \
-          --expr "(import ${../nix/lib}/lock.nix { src = $PWD; }).problems" > "$TMPDIR/problems"
+          --expr "(import ${../lib-overlays/default}/lock.nix { src = $PWD; }).problems" > "$TMPDIR/problems"
         cat "$TMPDIR/problems"
         test "$(cat "$TMPDIR/problems")" = "[ ]"
         touch $out

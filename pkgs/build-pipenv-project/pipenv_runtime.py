@@ -26,7 +26,7 @@ def native_inputs():
     if not any(argument in ('run', 'shell', 'sync', 'install') for argument in sys.argv[1:]):
         yield
         return
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     import pipenv_purifier as purifier
     native = Path(os.environ.get('PIPENV_PURIFIER_TOOL_LOCKFILE', root / 'Pipfile.lock'))
     lock = purifier.read_pipfile_lock(str(native))

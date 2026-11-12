@@ -4,7 +4,7 @@
 # `overlays.default`. It adds one attribute to the package set, the scope
 # `pkgs.pipenv-purifier`, which lib.makeScope makes. The scope holds the
 # command `cli` (pkgs/cli) and the builder `buildPipenvProject`
-# (nix/lib/build-pipenv-project.nix), each a package of the scope's
+# (pkgs/build-pipenv-project/default.nix), each a package of the scope's
 # callPackage. A package takes the builder as
 # `{ pipenv-purifier }: (pipenv-purifier.buildPipenvProject { src = ./.; }).packages.app`.
 # `pipenv-purifier.overrideScope` replaces what the scope shares, and
@@ -20,7 +20,7 @@
   overlay = final: prev: {
     pipenv-purifier = final.lib.makeScope final.newScope (self: {
       cli = self.callPackage ../../pkgs/cli { purifierSource = closure-inputs.purifier; };
-      buildPipenvProject = self.callPackage ../../nix/lib/build-pipenv-project.nix {
+      buildPipenvProject = self.callPackage ../../pkgs/build-pipenv-project/default.nix {
         inherit (closure-lib) purifier;
       };
     });

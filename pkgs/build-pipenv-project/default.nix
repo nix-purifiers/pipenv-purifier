@@ -20,7 +20,7 @@
 #   environment of `testCategories`.
 # - `release`: the sdists and wheels of every local package in one
 #   directory, which is what `pipenv-purifier publish` uploads.
-# - `fetches`: the `entries` of the lock in memory (nix/lib/lock.nix), the
+# - `fetches`: the `entries` of the lock in memory (lib-overlays/default/lock.nix), the
 #   download entries of the shared purifier library, each wheel for some
 #   systems only with its `systems`.
 # It also has:
@@ -97,7 +97,7 @@ let
 
   # The lock in memory, which checkLock refuses with its problems.
   read = purifier.checkLock (
-    import ./lock.nix {
+    import ../../lib-overlays/default/lock.nix {
       inherit src lockFile pipfileLock;
     }
   );
