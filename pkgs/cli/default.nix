@@ -29,7 +29,7 @@ let
 in
 stdenvNoCC.mkDerivation {
   pname = "pipenv-purifier";
-  version = lib.removeSuffix "\n" (builtins.readFile ../../version.txt);
+  version = import ../version.nix;
 
   src = lib.fileset.toSource {
     root = ../..;
