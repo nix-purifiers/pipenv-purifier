@@ -35,7 +35,9 @@ stdenvNoCC.mkDerivation {
     root = ../..;
     fileset = lib.fileset.unions [
       ../../src
-      ../../nix/lib
+      ../build-pipenv-project
+      ./cli.nix
+      ../../lib-overlays/default
     ];
   };
 
@@ -45,10 +47,13 @@ stdenvNoCC.mkDerivation {
     runHook preInstall
     mkdir -p $out/bin $out/share/pipenv-purifier
     cp src/*.py $out/share/pipenv-purifier/
-    cp -r nix/lib $out/share/pipenv-purifier/nix-lib
+    mkdir -p $out/share/pipenv-purifier/pkgs/cli
+    cp -r pkgs/build-pipenv-project $out/share/pipenv-purifier/pkgs/
+    cp pkgs/cli/cli.nix $out/share/pipenv-purifier/pkgs/cli/
+    cp -r lib-overlays $out/share/pipenv-purifier/
     makeWrapper ${python.interpreter} $out/bin/pipenv \
-      --add-flags "-I $out/share/pipenv-purifier/nix-lib/pipenv_runtime.py" \
-      --set PIPENV_PURIFIER_NIX_LIB $out/share/pipenv-purifier/nix-lib \
+      --add-flags "-I $out/share/pipenv-purifier/pkgs/build-pipenv-project/pipenv_runtime.py" \
+      --set PIPENV_PURIFIER_NIX_LIB $out/share/pipenv-purifier/pkgs/build-pipenv-project \
       --set PIPENV_PURIFIER_NIXPKGS ${path} \
       --set PIPENV_PURIFIER_LIBRARY ${purifierSource} \
       --prefix PATH : ${lib.makeBinPath [ pipenv ]}
@@ -65,7 +70,7 @@ stdenvNoCC.mkDerivation {
       --prefix PATH : "$out/bin" \
       --set PIPENV_PURIFIER_INTERNAL 1 \
       --set-default PIPENV_PURIFIER_PYTHON ${python3.interpreter} \
-      --set PIPENV_PURIFIER_NIX_LIB $out/share/pipenv-purifier/nix-lib \
+      --set PIPENV_PURIFIER_NIX_LIB $out/share/pipenv-purifier/pkgs/build-pipenv-project \
       --set PIPENV_PURIFIER_NIXPKGS ${path} \
       --set PIPENV_PURIFIER_LIBRARY ${purifierSource}
     runHook postInstall

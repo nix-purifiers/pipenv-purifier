@@ -49,7 +49,7 @@ let
     pythonTwoOnly = false;
   };
 
-  simpleLock = import ../nix/lib/lock.nix { src = ./fixtures/simple; };
+  simpleLock = import ../lib-overlays/default/lock.nix { src = ./fixtures/simple; };
   current = simpleLock.views;
 
   normalizeCases = {
@@ -79,7 +79,7 @@ let
   # library computes the same.
   checks = lock: builtins.tryEval (builtins.deepSeq (purifier.checkLock lock).entries true);
   currentLock = checks simpleLock;
-  sourcesLock = checks (import ../nix/lib/lock.nix { src = ./fixtures/sources; });
+  sourcesLock = checks (import ../lib-overlays/default/lock.nix { src = ./fixtures/sources; });
   # A wheel for one platform carries the systems it installs on.
   systemsOf =
     name: (lib.findFirst (entry: entry.path == name) { } simpleLock.entries).systems or "everywhere";

@@ -7,7 +7,7 @@ of all of the release's files, for every platform. It names packages from git
 by repository and commit, packages from a URL by the URL, and local packages
 by path. It records no URL of a file from an index, no build requirement,
 and nothing about what the local packages produce. The Nix library reads
-Pipfile.lock with `builtins.fromJSON` (`nix/lib/lock.nix`).
+Pipfile.lock with `builtins.fromJSON` (`lib-overlays/default/lock.nix`).
 
 `pipenv-purifier lock` (`src/pipenv_purifier.py`) writes
 `pipenv-purifier.lock.json`, format version 2, with only what Pipfile.lock
@@ -48,7 +48,7 @@ keeps its own, and the lock run says so.
 
 ## The lock in memory
 
-`nix/lib/lock.nix`, published as `lib.pipenv-purifier.readLock`, reads both
+`lib-overlays/default/lock.nix`, published as `lib.pipenv-purifier.readLock`, reads both
 lockfiles into the shape of the purifier contract: `purifier`, `entries`
 (the download entries of the shared library, a wheel for some platforms
 with its `systems`), `outputs` and `problems`. It builds the file entries
@@ -90,7 +90,7 @@ The shared [purifier](https://github.com/nix-purifiers/purifier) library's
 build's Python on the build's system (PEP 425 tags, manylinux 1, 2010, 2014
 and `2_N` against the glibc of the package set, `macosx` up to the package
 set's oldest macOS, `abi3`). For each package,
-`nix/lib/build-pipenv-project.nix` takes its wheels that install, or else
+`pkgs/build-pipenv-project/default.nix` takes its wheels that install, or else
 its sdist and the build of it. A build adds the files of its set of build
 requirements, chosen the same way, and the builds those need in turn. The
 library's `fetchEntry` fetches every chosen file and every git checkout, and
@@ -135,7 +135,7 @@ Pipenv itself needs.
 
 `update` runs `pipenv lock`, or `pipenv upgrade <package>...` for named
 packages, which writes Pipfile.lock and installs nothing, and then the lock
-run. `prefetch` builds the `prefetch` attribute of `nix/lib/cli.nix` with
+run. `prefetch` builds the `prefetch` attribute of `pkgs/cli/cli.nix` with
 `nix-build --out-link .pipenv-purifier/inputs`, which makes the link a
 garbage-collector root, and installs `.venv` from it as the build installs
 its environment, with editable local packages kept editable. `publish`

@@ -58,7 +58,7 @@ let
     if lib.pathIsDirectory target then source target else target
   );
 
-  buildPipenvProject = pkgs.callPackage ./build-pipenv-project.nix {
+  buildPipenvProject = pkgs.callPackage ../build-pipenv-project/default.nix {
     purifier = import "${purifier}/nix/lib" { inherit lib; };
   };
   project = buildPipenvProject {

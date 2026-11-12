@@ -613,7 +613,7 @@ def tree_files(root, pipfile_lock):
 def inputs_hash(root, pipfile_lock, tool_lock):
     """The hash the Nix library compares to tell whether the lockfile still
     matches Pipfile.lock, the one at `tool_lock`, and the pyproject.toml
-    files of the local source trees in the project. nix/lib/lock.nix
+    files of the local source trees in the project. lib-overlays/default/lock.nix
     computes the same text."""
     text = f"Pipfile.lock {sha256_file(tool_lock)}\n" + "".join(
         f"{f} {sha256_file(os.path.join(root, f))}\n" for f in tree_files(root, pipfile_lock)
@@ -640,7 +640,7 @@ def content_hash(lockfile):
     """The hash a lockfile records of its own content: the SHA-256 of its
     JSON without the `contentHash` field, with sorted keys and no
     whitespace, which is the text Nix's builtins.toJSON writes of it.
-    nix/lib/lock.nix computes the same hash, so an edit to the lockfile is
+    lib-overlays/default/lock.nix computes the same hash, so an edit to the lockfile is
     found before anything is fetched."""
     rest = {k: v for k, v in lockfile.items() if k != "contentHash"}
     text = json.dumps(rest, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
@@ -1011,7 +1011,7 @@ ROOT_DIR = ".pipenv-purifier"
 
 def nix_build(root, attribute, lock_path, tool_lock, out_link=None):
     """Builds, with the Nix library this program was installed with, an
-    attribute of nix/lib/cli.nix for the project, and returns the store
+    attribute of pkgs/cli/cli.nix for the project, and returns the store
     path. With `out_link`, the result is also a garbage-collector root at
     that path."""
     library = os.environ.get("PIPENV_PURIFIER_NIX_LIB")
@@ -1025,7 +1025,7 @@ def nix_build(root, attribute, lock_path, tool_lock, out_link=None):
     args = [
         "nix-build",
         *(["--out-link", out_link] if out_link else ["--no-out-link"]),
-        os.path.join(library, "cli.nix"),
+        os.path.join(library, "../cli/cli.nix"),
         "--arg", "nixpkgs", nixpkgs,
         "--argstr", "purifier", purifier,
         "--argstr", "src", root,
@@ -1253,7 +1253,7 @@ def main(argv=None):
     prefetch_parser.add_argument("--project", default=".", help="the directory that holds the Pipfile")
     prefetch_parser.add_argument(
         "--inputs",
-        help="the inputs Nix built for the project (the `prefetch` attribute of nix/lib/cli.nix); built with Nix when absent",
+        help="the inputs Nix built for the project (the `prefetch` attribute of pkgs/cli/cli.nix); built with Nix when absent",
     )
     prefetch_parser.add_argument(
         "--categories",
